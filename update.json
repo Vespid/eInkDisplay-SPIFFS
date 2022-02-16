@@ -1,9 +1,4 @@
 {
-	"image1": {"id":0, "delay": 300e6},
-	"image2": {"id":0, "delay": 300e6},
-	"image3": {"id":0, "delay": 300e6},
-	"image4": {"id":0, "delay": 300e6},
-	"image5": {"id":0, "delay": 300e6},
-	"image6": {"id":0, "delay": 300e6},
-	"image7": {"id":0, "delay": 300e6},
+	"id": [1,1,1,1,1,1,1,1,1,1],
+	"delay": [60e6, 60e6, 60e6, 60e6, 60e6, 60e6, 60e6, 60e6, 60e6, 60e6]
 }

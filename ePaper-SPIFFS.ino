@@ -12,7 +12,7 @@
 #include <ArduinoJson.h>
 
 #include <EEPROM.h>
-#define IMG_QTY 7
+#define IMG_QTY 10
 #define EEPROM_SIZE IMG_QTY + 1
 #define IMAGE_INDEX_MEM IMG_QTY
 
@@ -103,7 +103,7 @@ void setup() {
   //listFiles();
   downloadJSON();
 
-  const char* files[IMG_QTY] = {"image1.bmp", "image2.bmp", "image3.bmp", "image4.bmp", "image5.bmp", "image6.bmp", "image7.bmp"};
+  const char* files[IMG_QTY] = {"image1.bmp", "image2.bmp", "image3.bmp", "image4.bmp", "image5.bmp", "image6.bmp", "image7.bmp", "image8.bmp", "image9.bmp", "image10.bmp"};
   for (int i = 0; i < IMG_QTY; i++){
     int id = EEPROM.read(i);
     Serial.print("Image id: ");
@@ -153,7 +153,19 @@ void setup() {
   case 6:
     drawBitmapFromSpiffs("image7.bmp", 0, 0);
     imageDelay = imageUpdate[6].imageDelay;
-    break;     
+    break;
+  case 7:
+    drawBitmapFromSpiffs("image8.bmp", 0, 0);
+    imageDelay = imageUpdate[7].imageDelay;
+    break;  
+  case 8:
+    drawBitmapFromSpiffs("image9.bmp", 0, 0);
+    imageDelay = imageUpdate[8].imageDelay;
+    break;  
+  case 9:
+    drawBitmapFromSpiffs("image10.bmp", 0, 0);
+    imageDelay = imageUpdate[9].imageDelay;
+    break;       
   }
   
   imageIndex += 1;
@@ -191,7 +203,7 @@ void downloadJSON(){
     WiFiClientSecure client;
   #endif
   const char* host = "raw.githubusercontent.com";
-  const char* filename = "/Vespid/eInkDisplay-SPIFFS/main/update2.json";
+  const char* filename = "/Vespid/eInkDisplay-SPIFFS/main/update.json";
   
   //client.setFingerprint(fp_rawcontent);
   #if defined (ESP8266)
