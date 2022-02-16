@@ -58,7 +58,7 @@ const char* certificate_rawcontent =
   "-----END CERTIFICATE-----\n";
 
 const char* host_rawcontent   = "raw.githubusercontent.com";
-const char* path_vespid   = "/Vespid/eInkDisplay-SPIFFS/main/images/";
+const char* path_vespid   = "/Vespid/eInkDisplay-SPIFFS/main/data/";
 
   
 //Function Prototypes
@@ -113,6 +113,7 @@ void setup() {
       const char* fileName = files[i];
       downloadFile_HTTPS(host_rawcontent, path_vespid, fileName, fp_rawcontent, fileName); //return 0 if false //don't update eeprom?
       EEPROM.write(i, imageUpdate[i].id);
+      EEPROM.commit();
     }
   }
   
@@ -124,50 +125,10 @@ void setup() {
   }
   Serial.print("current image index: ");
   Serial.println(imageIndex);
-  
-  switch (imageIndex){
-  case 0:
-    drawBitmapFromSpiffs("image1.bmp", 0, 0);
-    imageDelay = imageUpdate[0].imageDelay;
-    break;
-  case 1:
-    drawBitmapFromSpiffs("image2.bmp", 0, 0);
-    imageDelay = imageUpdate[1].imageDelay;
-    break;
-  case 2:
-    drawBitmapFromSpiffs("image3.bmp", 0, 0);
-    imageDelay = imageUpdate[2].imageDelay;
-    break;
-  case 3:
-    drawBitmapFromSpiffs("image4.bmp", 0, 0);
-    imageDelay = imageUpdate[3].imageDelay;
-    break;
-  case 4:
-    drawBitmapFromSpiffs("image5.bmp", 0, 0);
-    imageDelay = imageUpdate[4].imageDelay;
-    break;
-  case 5:
-    drawBitmapFromSpiffs("image6.bmp", 0, 0);
-    imageDelay = imageUpdate[5].imageDelay;
-    break;
-  case 6:
-    drawBitmapFromSpiffs("image7.bmp", 0, 0);
-    imageDelay = imageUpdate[6].imageDelay;
-    break;
-  case 7:
-    drawBitmapFromSpiffs("image8.bmp", 0, 0);
-    imageDelay = imageUpdate[7].imageDelay;
-    break;  
-  case 8:
-    drawBitmapFromSpiffs("image9.bmp", 0, 0);
-    imageDelay = imageUpdate[8].imageDelay;
-    break;  
-  case 9:
-    drawBitmapFromSpiffs("image10.bmp", 0, 0);
-    imageDelay = imageUpdate[9].imageDelay;
-    break;       
-  }
-  
+
+  drawBitmapFromSpiffs(files[imageIndex], 0, 0);
+  imageDelay = imageUpdate[imageIndex].imageDelay;
+
   imageIndex += 1;
 
   Serial.println("Writing image index to EEPROM: ");
