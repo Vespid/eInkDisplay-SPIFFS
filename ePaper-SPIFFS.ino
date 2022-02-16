@@ -9,8 +9,13 @@
 #include <FS.h>
 #define FileClass fs::File
 
-#include <EEPROM.h>
 #include <ArduinoJson.h>
+
+#include <EEPROM.h>
+#define IMG_QTY 7
+#define EEPROM_SIZE IMG_QTY + 1
+#define IMAGE_INDEX_MEM IMG_QTY
+
 
 #if defined (ESP8266)
   #include <ESP8266WiFi.h>
@@ -24,6 +29,8 @@
 #include "GPIO.h"
 #include "credentials.h"
 #include "server.h"
+
+
 
 const int httpPort  = 80;
 const int httpsPort = 443;
@@ -51,10 +58,7 @@ const char* certificate_rawcontent =
   "-----END CERTIFICATE-----\n";
 
 const char* host_rawcontent   = "raw.githubusercontent.com";
-const char* path_rawcontent   = "/ZinggJM/GxEPD2/master/extras/bitmaps/";
-const char* path_prenticedavid   = "/prenticedavid/MCUFRIEND_kbv/master/extras/bitmaps/";
-const char* path_waveshare_c  = "/waveshare/e-Paper/master/RaspberryPi_JetsonNano/c/pic/";
-const char* path_waveshare_py = "/waveshare/e-Paper/master/RaspberryPi_JetsonNano/python/pic/";
+const char* path_vespid   = "/Vespid/eInkDisplay-SPIFFS/main/images/";
 
   
 //Function Prototypes
@@ -62,12 +66,23 @@ void drawBitmapFromSpiffs(const char *filename, int16_t x, int16_t y, bool with_
 void drawBitmapFromSpiffs_Buffered(const char *filename, int16_t x, int16_t y, bool with_color = true, bool partial_update = false, bool overwrite = false);
 void downloadFile_HTTPS(const char* host, const char* path, const char* filename, const char* fingerprint, const char* target, const char* certificate = certificate_rawcontent);
 
+//weather data structure
+typedef struct imageUpdateData
+{
+  int id;
+  int imageDelay;
+}
+imageUpdateData;
 
+//https://stackoverflow.com/questions/33497133/how-to-use-int-array-in-typedef-struct-c
+imageUpdateData imageUpdate[7]; //https://forum.arduino.cc/t/defining-a-struct-array/43699
 
 void setup() {
   Serial.begin(115200);
-  Serial.println();
-  Serial.println("GxEPD2_Spiffs_Example");
+
+  EEPROM.begin(EEPROM_SIZE);
+  
+  wifiSetup();
 
   display.init(115200);
   #if defined(ESP32)
@@ -82,39 +97,86 @@ void setup() {
 
   SPIFFS.begin();
   Serial.println("SPIFFS started");
+  delay(500);
   
-  listFiles();
-  wifiSetup();
-  //downloadFile_HTTPS(host_rawcontent, path_prenticedavid, "betty_4.bmp", fp_rawcontent, "betty_4.bmp");
+  // ********************************************************* //
+  //listFiles();
   downloadJSON();
-//  listFiles();
-  drawBitmapFromSpiffs("Angels.bmp", 0, 0);
-  delay(5000);
-  //ESP.deepSleep(image1["update"]);
-  drawBitmapFromSpiffs("Bud.bmp", 0, 0);
-  delay(5000);
-  drawBitmapFromSpiffs("Chiefs.bmp", 0, 0);
-  delay(5000);
-  drawBitmapFromSpiffs("Coke.bmp", 0, 0);
-  delay(5000);
-  drawBitmapFromSpiffs("DrPepper.bmp", 0, 0);
-  delay(5000);
-  drawBitmapFromSpiffs("Indians.bmp", 0, 0);
-  delay(5000);
-  drawBitmapFromSpiffs("Reds.bmp", 0, 0);
-//  delay(5000);
-//  drawBitmapFromSpiffs("/test.bmp", 0, 0);
-  //ESP.deepSleep(60e6); //Deep sleep for 60 seconds
 
-  /*
-  EEPROM.update(1, image1["hash"]);
-  if (EEPROM.update(1, image1["hash"]){
-    //download new image file
+  const char* files[IMG_QTY] = {"image1.bmp", "image2.bmp", "image3.bmp", "image4.bmp", "image5.bmp", "image6.bmp", "image7.bmp"};
+  for (int i = 0; i < IMG_QTY; i++){
+    int id = EEPROM.read(i);
+    Serial.print("Image id: ");
+    Serial.println(id);
+    if (imageUpdate[i].id != id){
+      Serial.println("downloading new image");
+      const char* fileName = files[i];
+      downloadFile_HTTPS(host_rawcontent, path_vespid, fileName, fp_rawcontent, fileName); //return 0 if false //don't update eeprom?
+      EEPROM.write(i, imageUpdate[i].id);
+    }
   }
-
-   */
-
   
+  //read value at address 0 - if never written, write 0
+  long imageDelay = 60e6; //defaults to reset every 60 seconds 
+  int imageIndex = EEPROM.read(IMAGE_INDEX_MEM);
+  if (imageIndex >= IMG_QTY || imageIndex < 0){
+    imageIndex = 0;
+  }
+  Serial.print("current image index: ");
+  Serial.println(imageIndex);
+  
+  switch (imageIndex){
+  case 0:
+    drawBitmapFromSpiffs("image1.bmp", 0, 0);
+    imageDelay = imageUpdate[0].imageDelay;
+    break;
+  case 1:
+    drawBitmapFromSpiffs("image2.bmp", 0, 0);
+    imageDelay = imageUpdate[1].imageDelay;
+    break;
+  case 2:
+    drawBitmapFromSpiffs("image3.bmp", 0, 0);
+    imageDelay = imageUpdate[2].imageDelay;
+    break;
+  case 3:
+    drawBitmapFromSpiffs("image4.bmp", 0, 0);
+    imageDelay = imageUpdate[3].imageDelay;
+    break;
+  case 4:
+    drawBitmapFromSpiffs("image5.bmp", 0, 0);
+    imageDelay = imageUpdate[4].imageDelay;
+    break;
+  case 5:
+    drawBitmapFromSpiffs("image6.bmp", 0, 0);
+    imageDelay = imageUpdate[5].imageDelay;
+    break;
+  case 6:
+    drawBitmapFromSpiffs("image7.bmp", 0, 0);
+    imageDelay = imageUpdate[6].imageDelay;
+    break;     
+  }
+  
+  imageIndex += 1;
+
+  Serial.println("Writing image index to EEPROM: ");
+  EEPROM.write(IMAGE_INDEX_MEM, imageIndex);
+  EEPROM.commit();
+
+  Serial.print("Sleeping ");
+  Serial.print(imageDelay);
+  Serial.println(" microseconds");
+  #if defined(ESP8266)
+    //ESP8266 deepsleep https://randomnerdtutorials.com/esp8266-deep-sleep-with-arduino-ide/
+    //Connect D0 to RST pin
+    ESP.deepSleep(imageDelay);
+  #elif defined(ESP32)
+    //ESP32 sleep https://randomnerdtutorials.com/esp32-deep-sleep-arduino-ide-wake-up-sources/
+    //https://randomnerdtutorials.com/esp32-flash-memory/
+    esp_sleep_enable_timer_wakeup(imageDelay);
+    esp_deep_sleep_start();
+  #else
+    delay(imageDelay/1000);
+  #endif
   }
 
 void loop() {
@@ -129,7 +191,7 @@ void downloadJSON(){
     WiFiClientSecure client;
   #endif
   const char* host = "raw.githubusercontent.com";
-  const char* filename = "/Vespid/eInkDisplay/master/update.json";
+  const char* filename = "/Vespid/eInkDisplay-SPIFFS/main/update2.json";
   
   //client.setFingerprint(fp_rawcontent);
   #if defined (ESP8266)
@@ -166,25 +228,13 @@ void downloadJSON(){
     return;
   }
   
-  StaticJsonDocument<200> doc;
+  StaticJsonDocument<384> doc;
   deserializeJson(doc, client);
-  long d1 = doc["delay"][0];
-  long li[4] = {};
-  Serial.println("Delay: ");
-  for (int i=0; i<4; i++){
-    li[i] = doc["delay"][i];
-    Serial.println(li[i]);
-  }
-  String s1 = doc["image1"]["hash"];
-  String i1 = doc["image1"]["address"];
 
-  Serial.println("API test...");
-  Serial.print("Delay 0:");
-  Serial.println(d1,3);
-  Serial.print("image1 hash:");
-  Serial.println(s1);
-  Serial.print("image1 address:");
-  Serial.println(i1);
+  for (int i = 0; i < 7; i++){
+    imageUpdate[i].id = doc["id"][i];
+    imageUpdate[i].imageDelay = doc["delay"][i];
+  }
 }
 
 

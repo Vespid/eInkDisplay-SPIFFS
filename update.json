@@ -1,10 +1,9 @@
 {
-	"image1": {"hash":"06242021-1537", "address": "image1.json", "delay": 300e6},
-	"image2": {"hash":"06242021-1537", "address": "image2.json", "delay": 300e6},
-	"image3": {"hash":"06242021-1537", "address": "image3.json", "delay": 300e6},
-	"image4": {"hash":"06242021-1537", "address": "image4.json", "delay": 300e6},
-	"image5": {"hash":"06242021-1537", "address": "image5.json", "delay": 300e6},
-	"image6": {"hash":"06242021-1537", "address": "image6.json", "delay": 300e6},
-	"image7": {"hash":"06242021-1537", "address": "image7.json", "delay": 300e6},
-	"delay":[300e6,300e6,300e6,300e6,300e6,300e6,300e6]
+	"image1": {"id":0, "delay": 300e6},
+	"image2": {"id":0, "delay": 300e6},
+	"image3": {"id":0, "delay": 300e6},
+	"image4": {"id":0, "delay": 300e6},
+	"image5": {"id":0, "delay": 300e6},
+	"image6": {"id":0, "delay": 300e6},
+	"image7": {"id":0, "delay": 300e6},
 }
